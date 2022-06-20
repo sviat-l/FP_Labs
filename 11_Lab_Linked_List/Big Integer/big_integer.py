@@ -25,7 +25,7 @@ class Node:
 
 class BigInteger:
     """
-    Class with oparations for biginteger
+    Class with oparations for biginteger nubmers
     """
 
     def __init__(self, string='0') -> None:
@@ -92,22 +92,25 @@ class BigInteger:
             self.tail = Node(int(string[i]), prev, None)
             prev.right = self.tail
 
+# -----------------------------------------------------------------------------
 
-    def insert_tail(self, digit):
+    def insert_tail(self, digit:int):
         """
         insert value in the tail of the linked list
         """
         new_node = Node(digit,self.tail, None)
         self.tail.right = new_node
         self.tail = new_node
+        self.length += 1
 
-    def insert_head(self, digit):
+    def insert_head(self, digit:int):
         """
         insert value in the head of the linked list
         """
         new_node = Node(digit, None, self.head)
         self.head.left = new_node
         self.head = new_node
+        self.length += 1
 
     def extend_tail(self, other:object):
         """
@@ -116,6 +119,7 @@ class BigInteger:
         other.head.left = self.tail
         self.tail.right = other.head
         self.tail = other.tail
+        self.length += len(other)
 
     def extend_head(self, other:object):
         """
@@ -124,14 +128,45 @@ class BigInteger:
         self.head.left = other.tail
         other.tail.right = self.head
         self.head = other.head
+        self.length += len(other)
 
+    def lpop(self):
+        """
+        Remove last element from the object
+        """
+        prev = self.tail
+        self.tail = prev.left
+        self.tail.right, prev.left = None, None
+        self.length -= 1
+
+    def fpop(self):
+        """
+        Remove first element from the object
+        """
+        prev = self.head
+        self.head = prev.right
+        self.head.left, prev.rigth = None, None
+        self.length -= 1
+
+    def is_zero(self):
+        """
+        Check if number is zero
+        """
+        return self.head.data == 0
+
+    def handle_zero(self):
+        """
+        Check if number == -0. Return BigInteger('0')
+        """
+        if self.is_zero():
+            self = BigInteger()
 
 
 # -----------------------------------------------------------------------------
 # ----------------------------- COMPARABLE OPERATORS --------------------------
 # -----------------------------------------------------------------------------
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         """
         Operator equal (==)
         """
@@ -192,28 +227,55 @@ class BigInteger:
         """
         return not self < other
 
+    def abs_biginteger(self):
+        """
+        Return absolute value of BigInteger as new object
+        """
+        result =  BigInteger(str(self))
+        result.is_negative = False
+        return result
+
+    def gt_abs(self, other:object) -> bool:
+        """
+        Greater than abs function. Compare two Bigdigits absolute values
+        Return:
+            True if abs(self) > abs(other)
+            False if abs(self) < abs(other)
+            None if abs(self) == abs(other)
+        """
+        # same sign
+        if self.positive() == other.positive():
+            if self==other:
+                return None
+            return self.positive() == (self > other)
+        # different length
+        if len(self) != len(other):
+            return len(self) > len(other)
+        # different sign, the same length
+        first, second = self.head, other.head
+        while first is not None:
+            if first.data  != second.data:
+                return first.data > second.data
+            first, second = first.right, second.right
+        return None
+
 
 # -----------------------------------------------------------------------------
 # ----------------------------- ARITHMETIC OPERATORS --------------------------
 # -----------------------------------------------------------------------------
 
 
-
-    def simple_sum(self, other):
+    def simple_sum(self, other:object):
         """
-        Sum of 2 positive bigintegers
+        Sum of 2 bigintegers absolute values
+
         """
+        # find which number has bigger length set initial values
+        less, more = (other.tail, self.tail) if len(self)>len(other) else \
+                     (self.tail, other.tail)
+        add_one, new_integer = 0, BigInteger()
 
-        # find which number has bigger length
-        less, more = other.tail, self.tail if len(self)>len(other) else \
-                     self.tail, other.tail
-
-        # create new biginteger with right last number
-        add_part = less.data + more.data
-        add_one, new_digit = divmod(add_part, 10)
-        new_integer = BigInteger(str(new_digit))
-
-        #Aadd digits in the head as sum of two current last
+        #add digits in the head as sum of two current last
         # digits of more and less. Take into accout add_one
         while less is not None:
             add_part = less.data + more.data + add_one
@@ -231,69 +293,333 @@ class BigInteger:
         # e.x. more = 9998, less = 11, new_integer = 0009 and saved one -> new_integer = 10009
         if add_one:
             new_integer.insert_head(1)
+        # remove initial extra zero from the result
+        new_integer.lpop()
         return new_integer
+
+    def simple_sub(self, other:object):
+        """
+        Substraction of two bigintegers
+        supposed that self > other >= 0
+        """
+        more, less = self.tail, other.tail
+        minus_one, result = 0, BigInteger()
+
+        # iterate on BigIntegers to the head. Substract digits one after another
+        while less is not None:
+            digit = more.data - less.data - minus_one
+            minus_one, digit = (0, digit) if digit>-1  else (1, digit+10)
+            result.insert_head(digit)
+            less, more = less.left, more.left
+        # smaller number calculated work only with bigger
+        while more is not None:
+            digit = more.data - minus_one
+            minus_one, digit = (0, digit) if digit>-1  else (1, digit+10)
+            result.insert_head(digit)
+            more = more.left
+        # remove initial extra zero from the result
+        result.lpop()
+        # Remome zeros from the begging of the biginteger
+        while result.head.data == 0 and result.head.right is not None:
+            result.fpop()
+        return result
+
 
     def __add__(self, other:object):
         """
         Adding of two big integers. Save in new class object
         """
-
-
-        if self.negative() != other.negative():
-            pass
-
-        ansver = self.simple_sum(other)
-
-        ansver.is_negative = self.negative()
+        # same signs
+        if self.positive() == other.positive():
+            ansver = self.simple_sum(other)
+            ansver.is_negative = self.negative()
+        # Different signs. Compare absolute values
+        elif self.positive():
+            if self.gt_abs(other):
+                ansver = self.simple_sub(other)
+            else:
+                ansver = other.simple_sub(self)
+                ansver.is_negative = True
+        else:
+            if self.gt_abs(other):
+                ansver = self.simple_sub(other)
+                ansver.is_negative = True
+            else:
+                ansver = other.simple_sub(self)
         return ansver
 
-
-    def __sub__(self, other:object):
+    def __sub__(self, other: object):
         """
         Substraction operator (self - other)
         """
         if self.negative() and other.positive():
             ansver = self.simple_sum(other)
             ansver.is_negative = True
-        elif self.negative() and other.positive():
-            pass
-
-
         elif self.positive() and other.negative():
-            pass
-
+            ansver = self.simple_sum(other)
+        elif self == other:
+                return BigInteger('0')
+        # both positive
+        elif self.positive():
+            if self > other:
+                ansver = self.simple_sub(other)
+            else:
+                ansver = other.simple_sub(self)
+                ansver.is_negative = True
+        # both negative
+        else:
+            if self < other:
+                ansver = self.simple_sub(other)
+                ansver.is_negative = True
+            else:
+                ansver = other.simple_sub(self)
         return ansver
 
-    def simple_sub(self, other):
+# -----------------------------------------------------------------------------
+
+    def __mul__(self, other:object):
         """
-        Substraction of two bigintegers
-        supposed that self > other >= 0
+        Multiplication operator
         """
+        result = BigInteger('0')
+        current = other.tail
+        i = 0
+        while current is not None:
+            if current.data:
+                digit_result = BigInteger('0')
+                # multiply by current digit
+                for _ in range(current.data):
+                    digit_result += self
+                # consider current possition (*10**x)
+                for _ in range(i):
+                    digit_result.insert_tail(0)
 
-        while len(other) != len(self):
-            other.insert_head(0)
-        more , less = self.tail, other.tail
+                result += digit_result
+            current, i = current.left, i+1
+        # Get sign value. Consider initial numbers and result != 0
+        result.is_negative = (self.negative() == other.positive()) and result.head.data
+        return result
 
-        digit = more.data - less.data
-        minus_one = 0
-        if digit <0:
-            digit +=10
-            minus_one = -1
-        result = BigInteger(digit)
+    def __pow__(self, other:object):
+        """
+        Power operator
+        """
+        # extreme examples
+        if other.head.data == 0:
+            return BigInteger('1')
+        if len(self) ==1 and self.head.data in [0,1]:
+            return BigInteger(str(self.head.data))
+        result = BigInteger('1')
+        current_pow = self
+        # bit representation of degree
+        degree_in_bit = other.bit_big_integer()
+        current_bit = degree_in_bit.tail
+        first_bit = current_bit.data
+        # iterate on degree bit representation. That is easier and faster to calculate
+        # e.x find: x**7 = x**(4+2+1) = x**1 * x**2  * x**4 =x**1 * (x**1)**2 * (x**2)**2
+        while current_bit is not None:
+            if current_bit.data:
+                result *= current_pow
+            current_pow = current_pow * current_pow
+            current_bit = current_bit.left
+        # set sigh value
+        if self.negative() and first_bit:
+            result.is_negative = True
+        return result
 
+
+    def __floordiv__(self, other:object):
+        """
+        Floor division operator (//)
+        """
+        # set initial values
+        remainder = self.abs_biginteger()
+        modul, modul_was_negative = other, other.negative()
+        modul.is_negative, quotient = False, BigInteger()
+
+        # substitute while remainder is more than modul
+        while remainder >= modul:
+            remainder = remainder.simple_sub(modul)
+            quotient += BigInteger('1')
+
+        # Modify result considering numbers sighs
+        if self.negative() != modul_was_negative:
+            if remainder.head.data != 0:
+                quotient += BigInteger('1')
+            quotient.is_negative = True
+            quotient.handle_zero()
+
+       # set initial modular (other) sigh
+        if modul_was_negative:
+            other.is_negative = True
+
+        return quotient
+
+    def __mod__(self, other:object):
+        """
+        Modular operator (%)
+        """
+        # set initial values
+        remainder = self.abs_biginteger()
+        modul, modul_was_negative = other, other.negative()
+        modul.is_negative = False
+
+        # substitute while number is more than modul
+        while remainder >= modul:
+            remainder = remainder.simple_sub(modul)
+
+        # Modify result considering number sighs
+        if self.negative()!= modul_was_negative and remainder.head.data !=0 :
+            remainder =  remainder - modul
+        if self.negative():
+            remainder.is_negative = not remainder.is_negative
+
+        # set initial modular (other) sigh
+        if modul_was_negative:
+            other.is_negative = True
+        return remainder
+
+    def big_divmod(self, other:object):
+        """
+        Find quotient and remainder of (self, other), return tuple (div, mod)
+        """
+        # set initial values
+        remainder, quotient = self.abs_biginteger(), BigInteger()
+        modul, modul_was_negative = other, other.negative()
+        modul.is_negative = False
+
+        # substitute while remainder is more than modul
+        ## Not rational ##
+        while remainder >= modul:
+            remainder = remainder.simple_sub(modul)
+            quotient += BigInteger('1')
+
+        # Modify quotient and remainder considering numbers signs
+        if self.negative() != modul_was_negative:
+            if remainder.head.data != 0:
+                quotient += BigInteger('1')
+                remainder =  remainder - modul
+            quotient.is_negative = True
+        if self.negative() and remainder.head.data != 0:
+            remainder.is_negative = not remainder.is_negative
+
+        # set initial modular (other) sigh
+        if modul_was_negative:
+            other.is_negative = True
+        return quotient, remainder
+
+
+# -----------------------------------------------------------------------------
+# ------------------------------ BITWISE OPERATORS ----------------------------
+# -----------------------------------------------------------------------------
+
+
+    def bin_into_integer(self):
+        """
+        Return BigInteger by its binary representation
+        """
+        # set constants and initial values
+        ansver, current_pow,  = BigInteger(), BigInteger('1')
+        current, big_2 = self.tail, BigInteger('2')
+        # Iterate on bin string. Increase 2 degree
+        while current is not None:
+            if current.data:
+                ansver += current_pow
+            current_pow, current =  current_pow * big_2, current.left
+        return ansver
+
+    def bit_big_integer(self):
+        """
+        Return bit representation of BigInteger
+        !! Works only for positive numbers !!
+        """
+        # set constants and initial values
+        curr_number, ansver = BigInteger(str(self)), BigInteger()
+        big_0, big_2 = BigInteger('0'), BigInteger('2')
+        # Find divmod values. Redefine number as number // 2
+        while curr_number > big_0:
+            curr_number, current_bit = curr_number.big_divmod(big_2)
+            ansver.insert_head(current_bit.head.data)
+        # remove initial last digit
+        ansver.lpop()
+        return ansver
+
+    def __rshift__(self, other:object):
+        """
+        Bitwise right shift operator
+        """
+        result = self.bit_big_integer()
+        for _ in range(int(str(other))):
+            result.lpop()
+        return result.bin_into_integer()
+
+    def __lshift__(self, other:object):
+        """
+        Bitwise left shift operator
+        """
+        result = self.bit_big_integer()
+        for _ in range(int(str(other))):
+            result.insert_tail(0)
+        return result.bin_into_integer()
+
+    def __and__(self, other:object):
+        """
+        Bitwise AND (&) operator (only for positive)
+        """
+        # set initial values
+        self_bit = self.bit_big_integer()
+        other_bit = other.bit_big_integer()
+        result = BigInteger()
+        less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
+                else (self_bit.tail, other_bit.tail)
+        # compare bits successively
         while less is not None:
-            break
+            result.insert_head( less.data & more.data)
+            less, more = less.left, more.left
+        # remove initial extra digit
+        result.lpop()
+        return result.bin_into_integer()
 
-        result.clear_nulls()
-
-
-    def clear_nulls(self):
+    def __xor__(self, other:object):
         """
-        Remome zeros from the begging of the biginteger
+        Bitwise XOR (^) operator (only for positive)
         """
-        while self.head.data == 0 and self.head.next is not None:
-            self.head = self.head.right
-            self.head.left.right = None
-            self.head.left = None
+        # set initial values
+        self_bit = self.bit_big_integer()
+        other_bit = other.bit_big_integer()
+        result = BigInteger()
+        less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
+                else (self_bit.tail, other_bit.tail)
+        # compare bits successively
+        while less is not None:
+            result.insert_head( less.data ^ more.data)
+            less, more = less.left, more.left
+        # add bits from binary number with bigger order
+        while more is not None:
+            result.insert_head(more.data)
+            more = more.left
+        # remove initial extra digit
+        result.lpop()
+        return result.bin_into_integer()
 
-
+    def __or__(self, other:object):
+        """
+        Bitwise OR (|) operator (only for positive)
+        """
+        # set initial values
+        self_bit = self.bit_big_integer()
+        other_bit = other.bit_big_integer()
+        result = BigInteger()
+        less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
+                else (self_bit.tail, other_bit.tail)
+        # compare bits successively
+        while less is not None:
+            result.insert_head( less.data | more.data)
+            less, more = less.left, more.left
+        # add bits from binary number with bigger order
+        while more is not None:
+            result.insert_head(more.data)
+            more = more.left
+        # remove initial extra digit
+        result.lpop()
+        return result.bin_into_integer()
