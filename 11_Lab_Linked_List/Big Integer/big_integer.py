@@ -148,19 +148,11 @@ class BigInteger:
         self.head.left, prev.rigth = None, None
         self.length -= 1
 
-    def is_zero(self):
+    def notzero(self):
         """
-        Check if number is zero
+        Check if number is not zero
         """
-        return self.head.data == 0
-
-    def handle_zero(self):
-        """
-        Check if number == -0. Return BigInteger('0')
-        """
-        if self.is_zero():
-            self = BigInteger()
-
+        return self.head.data != 0
 
 # -----------------------------------------------------------------------------
 # ----------------------------- COMPARABLE OPERATORS --------------------------
@@ -189,10 +181,10 @@ class BigInteger:
         """
         Greater than operator (>)
         """
+        if self.negative() != other.negative():
+            return self.negative() < other.negative()
         if len(self)!= len(other):
             return (len(self) > len(other)) == self.positive()
-        if self.negative() != other.negative():
-            return self.negative() > other.negative()
         cur_self, cur_other = self.head,other.head
         while cur_self is not None:
             if cur_self.data != cur_other.data:
@@ -210,10 +202,10 @@ class BigInteger:
         """
         Operator less than (<)
         """
+        if self.negative() != other.negative():
+            return self.negative() > other.negative()
         if len(self)!= len(other):
             return (len(self) < len(other)) == self.positive()
-        if self.negative() != other.negative():
-            return self.negative() < other.negative()
         cur_self, cur_other = self.head,other.head
         while cur_self is not None:
             if cur_self.data != cur_other.data:
@@ -397,7 +389,7 @@ class BigInteger:
                 result += digit_result
             current, i = current.left, i+1
         # Get sign value. Consider initial numbers and result != 0
-        result.is_negative = (self.negative() == other.positive()) and result.head.data
+        result.is_negative = (self.negative() == other.positive()) and result.notzero()
         return result
 
     def __pow__(self, other:object):
@@ -405,14 +397,14 @@ class BigInteger:
         Power operator
         """
         # extreme examples
-        if other.head.data == 0:
+        if not other.notzero():
             return BigInteger('1')
         if len(self) ==1 and self.head.data in [0,1]:
             return BigInteger(str(self.head.data))
         result = BigInteger('1')
         current_pow = self
         # bit representation of degree
-        degree_in_bit = other.bit_big_integer()
+        degree_in_bit = other.into_bin()
         current_bit = degree_in_bit.tail
         first_bit = current_bit.data
         # iterate on degree bit representation. That is easier and faster to calculate
@@ -444,10 +436,9 @@ class BigInteger:
 
         # Modify result considering numbers sighs
         if self.negative() != modul_was_negative:
-            if remainder.head.data != 0:
+            if remainder.notzero():
                 quotient += BigInteger('1')
             quotient.is_negative = True
-            quotient.handle_zero()
 
        # set initial modular (other) sigh
         if modul_was_negative:
@@ -469,7 +460,7 @@ class BigInteger:
             remainder = remainder.simple_sub(modul)
 
         # Modify result considering number sighs
-        if self.negative()!= modul_was_negative and remainder.head.data !=0 :
+        if self.negative()!= modul_was_negative and remainder.notzero() :
             remainder =  remainder - modul
         if self.negative():
             remainder.is_negative = not remainder.is_negative
@@ -496,11 +487,11 @@ class BigInteger:
 
         # Modify quotient and remainder considering numbers signs
         if self.negative() != modul_was_negative:
-            if remainder.head.data != 0:
+            if remainder.notzero():
                 quotient += BigInteger('1')
                 remainder =  remainder - modul
             quotient.is_negative = True
-        if self.negative() and remainder.head.data != 0:
+        if self.negative() and remainder.notzero():
             remainder.is_negative = not remainder.is_negative
 
         # set initial modular (other) sigh
@@ -528,7 +519,7 @@ class BigInteger:
             current_pow, current =  current_pow * big_2, current.left
         return ansver
 
-    def bit_big_integer(self):
+    def into_bin(self):
         """
         Return bit representation of BigInteger
         !! Works only for positive numbers !!
@@ -548,7 +539,7 @@ class BigInteger:
         """
         Bitwise right shift operator
         """
-        result = self.bit_big_integer()
+        result = self.into_bin()
         for _ in range(int(str(other))):
             result.lpop()
         return result.bin_into_integer()
@@ -557,7 +548,7 @@ class BigInteger:
         """
         Bitwise left shift operator
         """
-        result = self.bit_big_integer()
+        result = self.into_bin()
         for _ in range(int(str(other))):
             result.insert_tail(0)
         return result.bin_into_integer()
@@ -567,8 +558,8 @@ class BigInteger:
         Bitwise AND (&) operator (only for positive)
         """
         # set initial values
-        self_bit = self.bit_big_integer()
-        other_bit = other.bit_big_integer()
+        self_bit = self.into_bin()
+        other_bit = other.into_bin()
         result = BigInteger()
         less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
                 else (self_bit.tail, other_bit.tail)
@@ -585,8 +576,8 @@ class BigInteger:
         Bitwise XOR (^) operator (only for positive)
         """
         # set initial values
-        self_bit = self.bit_big_integer()
-        other_bit = other.bit_big_integer()
+        self_bit = self.into_bin()
+        other_bit = other.into_bin()
         result = BigInteger()
         less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
                 else (self_bit.tail, other_bit.tail)
@@ -607,8 +598,8 @@ class BigInteger:
         Bitwise OR (|) operator (only for positive)
         """
         # set initial values
-        self_bit = self.bit_big_integer()
-        other_bit = other.bit_big_integer()
+        self_bit = self.into_bin()
+        other_bit = other.into_bin()
         result = BigInteger()
         less, more = (other_bit.tail, self_bit.tail) if len(self_bit)>len(other_bit)\
                 else (self_bit.tail, other_bit.tail)
