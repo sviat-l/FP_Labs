@@ -47,15 +47,46 @@ class Maze:
         Attempts to solve the maze by finding a path from the starting cell
         to the exit. Returns True if a path is found and False otherwise.
         """
-        pass
+        path = Stack()
+        # get starting position
+        st_row = self._start_cell.row
+        st_col = self._start_cell.col
+        # mark starting cell as path cell
+        path.push((st_row, st_col))
+        self._mark_path(st_row, st_col)
+
+        while not path.is_empty():
+            row, col = path.peek()
+            # check if current cell is exit one
+            if self._exit_found(row, col):
+                return True
+            available_move = False
+            for d_row, d_col in [(-1, 0), (1,0), (0, -1), (0,1)]:
+                new_row, new_col = d_row + row, d_col + col
+                # add cell to the path if move is valid
+                if self._valid_move(new_row, new_col):
+                    self._mark_path(new_row, new_col)
+                    path.push((new_row, new_col))
+                    available_move = True
+                    break
+            # Remove impasse cell from path, go step back
+            if not available_move:
+                self._mark_tried(*path.pop())
+        return False
+
 
     def reset(self):
         """Resets the maze by removing all "path" and "tried" tokens."""
-        pass
+        for row in range(self.num_rows()):
+            for col in range(self.num_cols()):
+                if self._maze_cells[row, col] in [self.TRIED_TOKEN, self.PATH_TOKEN]:
+                    self._maze_cells[row, col] = None
 
     def __str__(self):
         """Returns a text-based representation of the maze."""
-        pass
+        return '\n'.join( [' '.join( [
+            (str(self._maze_cells[row, col]) if self._maze_cells[row, col] is not None else "_")
+            for col in range(self.num_cols()) ] )  for row in range(self.num_rows()) ] )
 
     def _valid_move(self, row, col):
         """Returns True if the given cell position is a valid move."""
