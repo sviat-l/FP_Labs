@@ -3,11 +3,16 @@ File: linkedbst.py
 Author: Ken Lambert
 """
 
+
 from abstractcollection import AbstractCollection
 from bstnode import BSTNode
 from linkedstack import LinkedStack
 from linkedqueue import LinkedQueue
 from math import log
+
+from sys import setrecursionlimit
+
+setrecursionlimit(1000000)
 
 
 class LinkedBST(AbstractCollection):
@@ -50,7 +55,16 @@ class LinkedBST(AbstractCollection):
 
     def preorder(self):
         """Supports a preorder traversal on a view of self."""
-        return None
+        lyst = list()
+
+        def recurse(node):
+            if node != None:
+                lyst.append(node.data)
+                recurse(node.left)
+                recurse(node.right)
+
+        recurse(self._root)
+        return iter(lyst)
 
     def inorder(self):
         """Supports an inorder traversal on a view of self."""
@@ -67,11 +81,30 @@ class LinkedBST(AbstractCollection):
 
     def postorder(self):
         """Supports a postorder traversal on a view of self."""
-        return None
+        lyst = list()
+
+        def recurse(node):
+            if node != None:
+                recurse(node.left)
+                recurse(node.right)
+                lyst.append(node.data)
+        recurse(self._root)
+        return iter(lyst)
 
     def levelorder(self):
         """Supports a levelorder traversal on a view of self."""
-        return None
+        nodes = LinkedQueue()
+        result = []
+        nodes.add(self._root)
+        while not nodes.isEmpty():
+            current = nodes.pop()
+            result.append(current.data)
+            if current.left:
+                nodes.add(current.left)
+            if current.right:
+                nodes.add(current.right)
+        return result
+
 
     def __contains__(self, item):
         """Returns True if target is found or False otherwise."""
@@ -232,33 +265,66 @@ class LinkedBST(AbstractCollection):
         Return the height of tree
         :return: int
         '''
-
         def height1(top):
             '''
             Helper function
             :param top:
             :return:
             '''
+            if top is None:
+                return -1
+            return max(height1(top.left), height1(top.right)) + 1
+        return height1(self._root)
+
 
     def is_balanced(self):
         '''
         Return True if tree is balanced
-        :return:
+        :return: bool
         '''
+        return (self.height() < 2 * log(self._size,base =2) - 1)
 
     def range_find(self, low, high):
         '''
         Returns a list of the items in the tree, where low <= item <= high."""
-        :param low:
-        :param high:
-        :return:
+        :param low: float
+        :param high:float
+        :return:list with tree items
         '''
+        result = []
+        def help_find(root, low, high):
+            """ append node data to the result"""
+            if root is None:
+                return None
+            if root.data > high :
+                return  help_find(self.right, low, high)
+            elif root.data < low:
+                return help_find(self.left, low, high)
+            result.append(self.data)
+            help_find(root.right, low, high)
+            help_find(root.left, low, high)
+        help_find(self._root, low, high)
+        return result
+
 
     def rebalance(self):
         '''
         Rebalances the tree.
         :return:
         '''
+        nodes = sorted(list(self.inorder()))
+        def list_to_tree(root, node_list):
+            """Helper funcеion """
+            length = len(node_list)
+            if length == 0:
+                return None
+            root.data = node_list[length//2]
+            root.left = list_to_tree(BSTNode(None),node_list[:length//2] )
+            root.right = list_to_tree(BSTNode(None),node_list[length//2+1:] )
+            return root
+
+        self._root = list_to_tree(self, nodes)
+        return self
 
     def successor(self, item):
         """
@@ -267,8 +333,20 @@ class LinkedBST(AbstractCollection):
         :param item:
         :type item:
         :return:
-        :rtype:
+        :rtype: type item
         """
+        # recursion version
+        def root_successor(root, item):
+            """ Helper function """
+            if root is None:
+                return None
+            if root.data <= item:
+                return root_successor(root.right, item)
+            if root.left is not None:
+                return root_successor(root.left, item)
+            return root.data
+        return root_successor(self._root, item)
+
 
     def predecessor(self, item):
         """
@@ -279,7 +357,17 @@ class LinkedBST(AbstractCollection):
         :return:
         :rtype:
         """
-        
+        # iterative version
+        current = self._root
+        while current is not None and current.data >= item:
+            current = current.left
+        if current is None:
+            return None
+        while current.right is not None:
+            current = current.right
+        return current.data
+
+
     def demo_bst(self, path):
         """
         Demonstration of efficiency binary search tree for the search tasks.
@@ -287,4 +375,6 @@ class LinkedBST(AbstractCollection):
         :type path:
         :return:
         :rtype:
-     
+        """
+        # implemented in time comparison bst.py #
+        return None
