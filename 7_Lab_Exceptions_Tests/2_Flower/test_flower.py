@@ -7,47 +7,66 @@ import unittest
 from flower import Flower, Tulip, Rose, Chamomile, FlowerSet, Bucket
 
 class TestFlower(unittest.TestCase):
+    """ Test Flower module classes"""
 
     def test_flower_init(self):
-        """ Check flower class init function and values correctness"""
+        """ Check flower class init function and values correctness """
 
-        fl = Flower('pink', 13, 20)
-        self.assertEqual(fl.color, 'red')
-        self.assertEqual(fl.petals, 13)
-        self.assertEqual(fl.price, 20)
+        flower = Flower('pink', 13, 20)
+        self.assertEqual(flower.color, 'pink')
+        self.assertEqual(flower.petals, 13)
+        self.assertEqual(flower.price, 20)
 
         with self.assertRaises(TypeError):
             Flower([], 1, 31)
+        with self.assertRaises(TypeError):
+            Flower('red', '11', 31)
+        with self.assertRaises(TypeError):
+            Flower('pink', 10, '1488')
+        with self.assertRaises(TypeError):
+            Flower("pink", 14.88, 31)
         with self.assertRaises(ValueError):
-            Flower("red", 14.88, 31)
+            Flower("blue", 31, -31)
         with self.assertRaises(ValueError):
-            Flower("red", 13, -31)
+            Flower("white", -31, 31)
 
     def test_subclasses(self):
         """ Tests for subclasses """
 
-        tul = Tulip(10, 30)
+        tulip = Tulip(10, 30)
+        self.assertTrue(isinstance(tulip, Flower))
         self.assertTrue(issubclass(Tulip, Flower))
-        self.assertEqual(tul.color, 'pink')
+        self.assertEqual(tulip.color, 'pink')
+        self.assertEqual(tulip.price, 30)
 
         rose = Rose(20, 80)
         self.assertTrue(issubclass(Rose, Flower))
+        self.assertTrue(isinstance(rose, Flower))
         self.assertEqual(rose.color, 'red')
+        self.assertEqual(rose.petals, 20)
 
-        cham = Chamomile(30, 120)
+        chamomile = Chamomile(30, 120)
         self.assertTrue(issubclass(Chamomile, Flower))
-        self.assertEqual(cham.color, 'white')
+        self.assertTrue(isinstance(chamomile, Flower))
+        self.assertEqual(chamomile.color, 'white')
+        self.assertEqual(chamomile.price, 120)
 
     def test_flower_set(self):
         """ Test flowerSet class """
 
         flower_set = FlowerSet()
+
+        self.assertEqual(flower_set.set_type, None)
         flower_set.add_flower(Rose(15, 111))
+        self.assertEqual(flower_set.set_type, Rose)
+        self.assertNotEqual(flower_set.set_type, Flower)
+
         with self.assertRaises(TypeError):
             flower_set.add_flower(Flower('blue', 10, 50))
+
         flower_set.add_flower(Rose(14, 199))
         flower_set.add_flower(Rose(13, 200))
-        self.assertEqual(len(flower_set.flower_set), 4)
+        self.assertEqual(len(flower_set.flower_set), 3)
 
 
     def test_bucket(self):
