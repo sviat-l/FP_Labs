@@ -1,0 +1,70 @@
+It the beginning there is only one user with all permissions (admin)
+
+User have 6 options:
+    1. login
+    2. sign
+    3. notebook
+    4. test
+    5. change
+        5.1 - permission
+        5.2 - delete
+    6. quit
+
+    Raise:
+        KeyError - if users option in not from the list
+
+Permitions:
+    own notebook - user have it own notebook, can add  and change the notes
+    test program - user can test program (get all users notebooks)
+    change program - can make changes for other other users (delete user, set permissions)
+
+1. Login
+    Enter user name and password. Check enetered data.
+    If it is correct change logged user to stated
+
+    Raise:
+        InvalidUsername - if there are no users on stated name
+        InvalidPassword - if password does not equels the user's one
+
+2. Sign in
+    Enter new user name and password. Check enetered data.
+    If it is relevant to the rules add user to the data.
+
+    Raise:
+        UsernameAlreadyExists - if there is a user with entered name
+        PasswordTooShort - if password has incorrect length (len > 4)
+
+3. Notebook
+    If user has permission to own the notebook,
+    Run notebook program. Create or edit the notes.
+
+    Raise:
+        NotPermitterError - if user can not own the notebook
+        SystemExit - when closing the notebook catch it with exception.
+
+4. Test
+    If user has a permittion to test the program. Print all users' notes.
+    Raise:
+        NotPermitterError - if user can not test the program
+
+5. Сhange
+    If user has a permittion to change the program. Open change menu.
+    Raise:
+        NotPermitterError - if user can not test the program
+        KeyError - if users option in not from the list
+
+    5.1 Permition
+        Enter user name and permission to set.
+        If data is correct give that user a permittion.
+        Raise:
+            InvalidUsername - if username with stated name do not exist
+            PermissionError - if permittion do not exist
+
+    5.2 Delete
+        Enter user name to delete.
+        If data is correct delete that user.
+        Raise:
+            InvalidUsername - if username with stated name do not exist
+
+6. Quit
+    End running the program. Raise SystemExit.

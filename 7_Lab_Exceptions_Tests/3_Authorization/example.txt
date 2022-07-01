@@ -1,0 +1,214 @@
+!!! Sign 2 users sviat and tester !!!
+
+
+You are logged in as: None
+Please enter a command:
+        login   Login
+        sign    Sign up
+        notebook        Open notebook
+        test    Test the program
+        change  Change the program
+        quit    Quit
+
+enter a command: sign
+username: sviat
+password: sviatoslav
+
+
+You are logged in as: None
+[MAPINFO]
+enter a command: sign
+username: tester
+password: tester
+
+
+!!! Login as admin, create note and add permissions !!!
+
+
+You are logged in as: None
+[MAPINFO]
+enter a command: login
+username: admin
+password: password
+
+You are logged in as: admin
+[MAPINFO]
+enter a command: notebook
+
+    Notebook Menu
+    1. Show all Notes
+    2. Search Notes
+    3. Add Note
+    4. Modify Note
+    5. Quit
+
+Enter an option: 3
+Enter a memo: add permissions
+Your note has been added.
+
+[NOTEBOOKINFO]
+Enter an option: 5
+Thank you for using your notebook today.
+Notebook was closed
+
+You are logged in as: admin
+[MAPINFO]
+enter a command: change
+Changing program now...
+
+Please enter a command to change a menu:
+        permit  Add permition
+        delete  delete user
+        exit    Exit change menu
+
+enter a command: permit
+username: sviat
+permission: change program
+
+[CHANGEINFO]
+enter a command: exit
+Program was changed
+
+
+!!! LOGIN AS sviat, add (self) permission and note !!!
+
+
+You are logged in as: admin
+[MAPINFO]
+enter a command: login
+username: sviat
+password: sviatoslav
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: change
+Changing program now...
+
+[CHANGEINFO]
+enter a command: permit
+username: sviat
+permission: own notebook
+
+[PERMITINFO]
+enter a command: exit
+Program was changed
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: notebook
+
+[NOTEBOOKINFO]
+Enter an option: 3
+Enter a memo: add permissions
+Your note has been added.
+
+[NOTEBOOKINFO]
+Enter an option: 3
+Enter a memo: delete user
+Your note has been added.
+
+[NOTEBOOKINFO]
+Enter an option: 5
+Thank you for using your notebook today.
+Notebook was closed
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: change
+Changing program now...
+
+[PERMITINFO]
+enter a command: permit
+username: tester
+permission: test program
+
+[PERMITINFO]
+enter a command: exit
+Program was changed
+
+
+!!! LOGIN as terter to test program !!!
+
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: login
+username: tester
+password: tester
+
+You are logged in as: tester
+[MAPINFO]
+enter a command: test
+Testing program now...
+Users notebooks:
+
+User admin notebooks:
+1:
+add permissions
+
+User sviat notebooks:
+2:
+add permissions
+3:
+
+User tester notebooks:
+
+
+!!! LOGIN as sviat self permit and delete admin and tester !!!
+
+
+You are logged in as: tester
+[MAPINFO]
+enter a command: login
+username: sviat
+password: sviatoslav
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: change
+Changing program now...
+
+[PERMITINFO]
+enter a command: delete
+username: tester
+
+[PERMITINFO]
+enter a command: delete
+username: admin
+
+
+[PERMITINFO]
+enter a command: permit
+username: tester
+permission: test program
+Username doesn't exist
+
+[PERMITINFO]
+enter a command: change
+Changing program now...
+
+[PERMITINFO]
+enter a command: permit
+username: sviat
+permission: test program
+
+[PERMITINFO]
+enter a command: exit
+Program was changed
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: test
+Testing program now...
+Users notebooks:
+
+User sviat notebooks:
+2:
+add permissions
+3:
+delete user
+
+You are logged in as: sviat
+[MAPINFO]
+enter a command: quit
+Thank you for testing the auth module
