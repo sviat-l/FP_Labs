@@ -1,27 +1,50 @@
 """
-File: algorithms.py
-
-Graph processing algorithms
+Lab 14 - Graph Study Algorithms
 """
 
 from linkedstack import LinkedStack
+from linkedqueue import LinkedQueue
 
-def topoSort(g, startLabel = None):
+def topological_sort(graph, startLabel = None):
+    """
+    Return stack with topoligicaly sorted graph vertixes
+    """
     stack = LinkedStack()
-    g.clearVertexMarks()
-    for v in g.vertices():
+    graph.clearVertexMarks()
+    for v in graph.vertices():
         if not v.isMarked():
-            dfs(g, v, stack)
+            dfs(graph, v, stack)
     return stack
 
-def dfs(g, v, stack):
-    v.setMark()
-    for w in g.neighboringVertices(v.getLabel()):
+def dfs(graph, vertex, stack):
+    """
+    Visit nodes by dfs. Add nodes to the stack
+    """
+    vertex.setMark()
+    for w in graph.neighboringVertices(vertex.getLabel()):
         if not w.isMarked():
-            dfs(g, w, stack)
-    stack.push(v)
+            dfs(graph, w, stack)
+    stack.push(vertex)
 
-def shortestPaths(g, startLabel):
-    # Exercise
-    return ["Under development"]
-
+def bfs(graph, first_node):
+    """
+    Return list with the vertices visited by bfs
+    """
+    graph.clearVertexMarks()
+    # set initail values
+    result = []
+    vertix_queue = LinkedQueue()
+    vertix_queue.add(graph.getVertex(first_node))
+    # iterate while there are nodes in a queue
+    while not vertix_queue.isEmpty():
+        current_vx = vertix_queue.pop()
+        # check if note was visited
+        if not current_vx.isMarked():
+            current_vx.setMark()
+            vx_label = current_vx.getLabel()
+            result.append(vx_label)
+            # add neighbours to the queue
+            for node in graph.neighboringVertices(vx_label):
+                if not node.isMarked():
+                    vertix_queue.add(node)
+    return result
