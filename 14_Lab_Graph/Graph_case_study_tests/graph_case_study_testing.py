@@ -6,6 +6,7 @@ from graph import LinkedDirectedGraph
 from algorithms import topological_sort, dfs, bfs
 from linkedstack import LinkedStack
 
+
 def read_file(path):
     """
     Read file. Create and return graph wirh file edges
@@ -29,6 +30,7 @@ def read_file(path):
                 graph.addEdge(vert, node, 0)
     return graph
 
+
 PATH = 'stanford_cs.txt'
 class TestGraph(unittest.TestCase):
     """
@@ -40,21 +42,14 @@ class TestGraph(unittest.TestCase):
         """
         Test read_file function
         """
-        # undirected graph
-        graph1 = read_file(PATH)
-        self.assertFalse(graph1.is_directed())
-        self.assertEqual(graph1.edge_count(), 22)
-        self.assertEqual(graph1.vertex_count(), 24)
-        # directed graph
-        graph2 = read_file(PATH, directed=True)
-        self.assertTrue(graph2.is_directed())
-        self.assertEqual(graph2.edge_count(), 22)
-        self.assertEqual(graph2.vertex_count(), 24)
-        self.assertEqual([node.element() for node in graph2.vertices()],
-                 ['MATH19', 'MATH20',  'MATH21', 'MATH51', 'CS108', 'PHYS21',
-                  'PHYS23', 'CS106A', 'CS106B', 'CS194W', 'CS221', 'CS155',
-                  'CS145', 'CS161', 'CS154', 'CS140', 'CS144', 'CS109', 'CS103',
-                  'CS110','CS107', 'ENGR40M', 'MATH52', 'MATH53'])
+        graph = read_file(PATH)
+        self.assertEqual(graph.sizeEdges(), 22)
+        self.assertEqual(graph.sizeVertices(), 24)
+        vertices_labels = [node.getLabel() for node in graph.vertices()]
+        self.assertEqual(vertices_labels, ['MATH19', 'MATH20',  'MATH21', 'MATH51',
+                 'CS108', 'PHYS21', 'PHYS23', 'CS106A', 'CS106B', 'CS194W', 'CS221',
+                 'CS155', 'CS145', 'CS161', 'CS154', 'CS140', 'CS144', 'CS109',
+                 'CS103', 'CS110','CS107', 'ENGR40M', 'MATH52', 'MATH53'])
 
 
     def test_bfs(self):
@@ -62,27 +57,23 @@ class TestGraph(unittest.TestCase):
         Test BFS function
         """
         graph1 = read_file(PATH)
-        vx1 = get_vertex(graph1,'ENGR40M')
-        visited1 = {vx1:None}
-        bfs(graph1, vx1, visited1)
+        vx1 = 'ENGR40M'
+        result1= bfs(graph1, vx1)
 
-        self.assertEqual(len(visited1), 3)
-        self.assertIn(get_vertex(graph1, 'PHYS23'),visited1)
-        self.assertNotIn(get_vertex(graph1, 'CS194W'),visited1)
-        self.assertEqual(list(node.element() for node in visited1),
-                        ['ENGR40M', 'PHYS23', 'PHYS21'])
+        self.assertEqual(len(result1), 3)
+        self.assertIn('PHYS23',result1)
+        self.assertNotIn('CS194W',result1)
+        self.assertEqual(result1, ['ENGR40M', 'PHYS23', 'PHYS21'])
 
 
-        graph2 = read_file(PATH, True)
-        vx2 = get_vertex(graph2, 'MATH53')
-        visited2 = {vx2:None}
-        bfs(graph2, vx2, visited2)
+        graph2 = read_file(PATH)
+        vx2 = 'MATH53'
+        result2 = bfs(graph2, vx2)
 
-        self.assertEqual(len(visited2), 5)
-        self.assertIn(get_vertex(graph2, 'MATH53'),visited2)
-        self.assertNotIn(get_vertex(graph2, 'CS194W'),visited2)
-        self.assertEqual(list(node.element() for node in visited2),
-                    ['MATH53', 'MATH51', 'MATH21', 'MATH20', 'MATH19'])
+        self.assertEqual(len(result2), 5)
+        self.assertIn('MATH53',result2)
+        self.assertNotIn('CS194W',result2)
+        self.assertEqual(result2, ['MATH53', 'MATH51', 'MATH21', 'MATH20', 'MATH19'])
 
 
     def test_dfs(self):
@@ -90,42 +81,42 @@ class TestGraph(unittest.TestCase):
         Test DFS function
         """
         graph1 = read_file(PATH)
-        vx1 = get_vertex(graph1,'CS221')
-        visited1 = {vx1:None}
+        vx1 = graph1.getVertex('CS221')
+        visited1 = LinkedStack()
         dfs(graph1, vx1, visited1)
 
-        self.assertEqual(len(visited1), 15)
-        self.assertIn(get_vertex(graph1, 'CS145'),visited1)
-        self.assertNotIn(get_vertex(graph1, 'MATH53'),visited1)
-        self.assertEqual(set(node.element() for node in visited1),
-                        {'CS140', 'CS110', 'CS194W', 'CS103', 'CS221',
-                         'CS155', 'CS109', 'CS154', 'CS106A', 'CS107',
-                         'CS108', 'CS161', 'CS106B', 'CS145', 'CS144'})
+        self.assertEqual(len(visited1), 5)
+        self.assertIn(graph1.getVertex('CS221'),visited1)
+        self.assertNotIn(graph1.getVertex('MATH53'), visited1)
+        self.assertEqual([vx.getLabel() for vx in visited1],
+                        ['CS106A', 'CS106B', 'CS103', 'CS109', 'CS221'])
 
-        graph2 = read_file(PATH, True)
-        vx2 = get_vertex(graph2,'PHYS23')
-        visited2 = {vx2:None}
+        graph2 = read_file(PATH)
+        vx2 = graph2.getVertex('PHYS23')
+        visited2 = LinkedStack()
         dfs(graph2, vx2, visited2)
 
         self.assertEqual(len(visited2), 2)
-        self.assertIn(get_vertex(graph2, 'PHYS23'),visited2)
-        self.assertNotIn(get_vertex(graph2, 'CS106A'),visited2)
-        self.assertEqual(list(node.element() for node in visited2),
-                        ['PHYS23', 'PHYS21'])
+        self.assertIn(graph2.getVertex('PHYS23'),visited2)
+        self.assertNotIn(graph2.getVertex('CS106A'),visited2)
+        self.assertEqual([vx.getLabel() for vx in visited2],
+                        ['PHYS21', 'PHYS23'])
 
 
     def test_topological_sort(self):
         """
-        Test Topological sort function (for inderecte graph)
+        Test Topological sort function
         """
-        graph = read_file(PATH, True)
-        top_sorted = [node.element() for node in topological_sort(graph)]
-        self.assertEqual(len(top_sorted), graph.vertex_count())
-        self.assertEqual(top_sorted, ['MATH53', 'MATH52', 'MATH51',
-                    'MATH21', 'MATH20', 'MATH19', 'ENGR40M', 'PHYS23',
-                    'PHYS21', 'CS144', 'CS140', 'CS154', 'CS145', 'CS155',
-                    'CS110', 'CS107', 'CS221', 'CS194W', 'CS108', 'CS161',
-                    'CS109', 'CS103', 'CS106B', 'CS106A'])
+        graph = read_file(PATH)
+        # get node labels from the stack from tail to the head
+        top_sorted = [node.getLabel() for node in topological_sort(graph)][::-1]
+
+        self.assertEqual(len(top_sorted), graph.sizeVertices())
+        self.assertEqual(top_sorted, ['MATH53', 'MATH52', 'ENGR40M', 'CS144',
+                    'CS140', 'CS154', 'CS145', 'CS155', 'CS110', 'CS107', 'CS221',
+                    'CS194W', 'PHYS23', 'PHYS21', 'CS108', 'CS161', 'CS109', 'CS103',
+                    'CS106B', 'CS106A', 'MATH51', 'MATH21', 'MATH20', 'MATH19'])
+
 
 if  __name__ == '__main__':
     unittest.main()
