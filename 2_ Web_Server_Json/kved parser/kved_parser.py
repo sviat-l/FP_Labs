@@ -1,5 +1,5 @@
 """
-MODULE to work with kved.json
+Lab 2.1 Parser
 """
 import json
 
